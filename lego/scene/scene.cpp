@@ -195,11 +195,12 @@ void Scene::DrawScene(int ActiveBrick)
 	TextOut(this->hdc, this->X + 25, this->height - 50, (LPCWSTR)fps_buf, 11);
 }
 
-bool Scene::AddBrick(Brick brick, int X, int Y, int Z, COLORREF color, float transparency)
+bool Scene::AddBrick(Brick brick, int type, int X, int Y, int Z, COLORREF color, float transparency)
 {
 	Brick* nbrick = new Brick(brick);
 	nbrick->color = color;
 	nbrick->transparency = transparency;
+	nbrick->type = type;
 
 	GMatrix movetoorigin = matrixMove(-nbrick->center.X + X, -nbrick->center.Y + Y, -nbrick->center.Z + Z);
 
@@ -214,9 +215,9 @@ bool Scene::AddBrick(Brick brick, int X, int Y, int Z, COLORREF color, float tra
 	nbrick->center = center;
 	nbrick->sourceCenter = center;
 	this->bricks->add(nbrick);
-	if (this->checkCollision(this->bricks->objects.size() - 1) == 1)
+	if (this->checkCollision(this->bricks->ID) == 1)
 	{
-		this->bricks->objects.pop_back();
+		this->bricks->remove(this->bricks->ID);
 		return false;
 	}
 	return true;
@@ -313,7 +314,10 @@ void Scene::toCam()
 				tmpN = tmpN * nview * nscenecoord;;
 				nbrick->sVNormal[faceIndex][i] = tmpN;
 			}
-			this->checkFaceVisibility(nbrick, faceIndex, nresult);
+			if (nbrick->transparency > 0.99)
+			{
+				this->checkFaceVisibility(nbrick, faceIndex, nresult);
+			}
 
 		}
 	}

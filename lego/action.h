@@ -52,7 +52,7 @@ public:
 	virtual void Execute(Scene* scene, Composite* loadedBricks, int ID) override
 	{
 		Brick brick = *(loadedBricks->objects[ID]);
-		if (!scene->AddBrick(brick, this->X, this->Y, this->Z, this->color, this->trancparency))
+		if (!scene->AddBrick(brick, ID, this->X, this->Y, this->Z, this->color, this->trancparency))
 		{
 			throw AddBrickCollisionError();
 		}
@@ -67,9 +67,9 @@ private:
 class ActionDeletebrick : public Action
 {
 public:
-	ActionDeletebrick(int ID)
+	ActionDeletebrick(int delID)
 	{
-		this->ID = ID;
+		this->delID = delID;
 	}
 
 	~ActionDeletebrick()
@@ -78,12 +78,11 @@ public:
 
 	virtual void Execute(Scene* scene, Composite* loadedBricks, int ID) override
 	{
-		delete scene->bricks->objects[this->ID];
-		scene->bricks->remove(this->ID);
+		scene->bricks->remove(this->delID);
 	}
 
 private:
-	int ID;
+	int delID;
 };
 
 class ActionDraw : public Action
@@ -125,10 +124,10 @@ public:
 			brick = bricks->get(ID);
 		}
 		brick->modificate(modification);
-		Brick* currentBrick = (Brick*)brick;
 		if (!scene->checkCollision(ID))
 		{
 			brick->applyModification();
+			brick->angleX += this->angle;
 		}
 		else
 		{
@@ -146,6 +145,7 @@ public:
 				else
 				{
 					brick->applyModification();
+					brick->angleX += this->angle;
 				}
 			}
 		}
@@ -177,10 +177,10 @@ public:
 			brick = bricks->get(ID);
 		}
 		brick->modificate(modification);
-		Brick* currentBrick = (Brick*)brick;
 		if (!scene->checkCollision(ID))
 		{
 			brick->applyModification();
+			brick->angleY += this->angle;
 		}
 		else
 		{
@@ -198,6 +198,7 @@ public:
 				else
 				{
 					brick->applyModification();
+					brick->angleY += this->angle;
 				}
 			}
 		}
@@ -229,10 +230,10 @@ public:
 			brick = bricks->get(ID);
 		}
 		brick->modificate(modification);
-		Brick* currentBrick = (Brick*)brick;
 		if (!scene->checkCollision(ID))
 		{
 			brick->applyModification();
+			brick->angleZ += this->angle;
 		}
 		else
 		{
@@ -250,6 +251,7 @@ public:
 				else
 				{
 					brick->applyModification();
+					brick->angleZ += this->angle;
 				}
 			}
 		}
@@ -281,7 +283,6 @@ public:
 			brick = bricks->get(ID);
 		}
 		brick->modificate(modification);
-		Brick* currentBrick = (Brick*)brick;
 		if (!scene->checkCollision(ID))
 		{
 			brick->applyModification();
@@ -333,7 +334,6 @@ public:
 			brick = bricks->get(ID);
 		}
 		brick->modificate(modification);
-		Brick* currentBrick = (Brick*)brick;
 		if (!scene->checkCollision(ID))
 		{
 			brick->applyModification();
@@ -436,23 +436,157 @@ private:
 	double angle;
 };
 
-class ActionCameraRotationVertical : public Action
+class ActionCameraRotationVerticalZ : public Action
 {
 public:
-	ActionCameraRotationVertical(double angle)
+	ActionCameraRotationVerticalZ(double angle)
 	{
 		this->angle = angle;
 	}
 
-	~ActionCameraRotationVertical()
+	~ActionCameraRotationVerticalZ()
 	{
 	}
 
 	virtual void Execute(Scene* scene, Composite* loadedBricks, int ID) override
 	{
-		scene->cam->rotateVerticalSphere(this->angle);
+		scene->cam->rotateVerticalSphereZ(this->angle);
 	}
 
 private:
 	double angle;
+};
+
+class ActionCameraRotationVerticalX : public Action
+{
+public:
+	ActionCameraRotationVerticalX(double angle)
+	{
+		this->angle = angle;
+	}
+
+	~ActionCameraRotationVerticalX()
+	{
+	}
+
+	virtual void Execute(Scene* scene, Composite* loadedBricks, int ID) override
+	{
+		scene->cam->rotateVerticalSphereX(this->angle);
+	}
+
+private:
+	double angle;
+};
+
+// It's better to make new class but I have no time to make it look nice
+
+class ActionLoadScene : public Action
+{
+public:
+	ActionLoadScene(char* filename)
+	{
+		this->filename = filename;
+		this->count = 0;
+	}
+
+	~ActionLoadScene()
+	{
+	}
+
+	virtual void Execute(Scene* scene, Composite* loadedBricks, int ID) override
+	{
+		if ((this->file = fopen(this->filename, "r")) == NULL)
+		{
+			throw LoaderOpenFileError();
+		}
+		FILE* f = this->file;
+
+		scene->bricks->clear();
+
+		int bid;
+		double t, x, y, z, rx, ry, rz;
+		int rr, gg, bb;
+
+		while (!feof(f))
+		{
+			if (fscanf_s(this->file, "%d/%lf/%d/%d/%d/%lf/%lf/%lf/%lf/%lf/%lf\n", &bid, &t, &rr, &gg, &bb, &x, &y, &z, &rx, &ry, &rz) != 11)
+			{
+				throw LoaderBadFile();
+			}
+
+			Brick brick = *(loadedBricks->objects[bid]);
+			COLORREF c = RGB(rr, gg, bb);
+			if (!scene->AddBrick(brick, bid, x, y, z, c, t))
+			{
+				throw AddBrickCollisionError();
+			}
+
+			
+			BaseObject* scbrick = scene->bricks;
+			Composite* bricks = (Composite*)scbrick;
+			scbrick = bricks->get(bricks->ID);
+
+			RotationX* arx = new RotationX(rx);
+			scbrick->modificate(arx);
+			scbrick->applyModification();
+
+			RotationY* ary = new RotationY(ry);
+			scbrick->modificate(ary);
+			scbrick->applyModification();
+
+			RotationZ* arz = new RotationZ(rz);
+			scbrick->modificate(arz);
+			scbrick->applyModification();
+
+			count++;
+		}
+
+		fclose(this->file);
+	}
+
+	int count;
+
+private:
+	char* filename;
+	FILE* file;
+};
+
+class ActionSaveScene : public Action
+{
+public:
+	ActionSaveScene(char* filename)
+	{
+		this->filename = filename;
+	}
+
+	~ActionSaveScene()
+	{
+	}
+
+	virtual void Execute(Scene* scene, Composite* loadedBricks, int ID) override
+	{
+		if ((this->file = fopen(this->filename, "w")) == NULL)
+		{
+			throw LoaderOpenFileError();
+		}
+		FILE* f = this->file;
+
+		int bid;
+		double t, x, y, z, rx, ry, rz;
+		int rr, gg, bb;
+
+		for (int i = 0; i <= scene->bricks->ID; i++)
+		{
+			Brick* tmp = scene->bricks->get(i);
+			fprintf_s(this->file, "%d/%lf/%d/%d/%d/%lf/%lf/%lf/%lf/%lf/%lf\n",
+				tmp->type,tmp->transparency, GetRValue(tmp->color), GetGValue(tmp->color), GetBValue(tmp->color), 
+				tmp->center.X, tmp->center.Y, tmp->center.Z, tmp->angleX, tmp->angleY, tmp->angleZ);
+		}
+
+		fclose(this->file);
+	}
+
+private:
+	char* filename;
+	FILE* file;
 };

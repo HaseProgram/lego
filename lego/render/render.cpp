@@ -46,7 +46,7 @@ void Render::clear()
 	}
 }
 
-void Render::run(Composite* bricks, Camera cam, Vertex light, int activeBrick)
+void Render::run(Composite* bricks, Camera cam, Vertex light, int activeBrickIndex)
 {
 	// Sorting bricks in order of distance from camera (need for transparent bricks)
 	for (int brickIndex = 0; brickIndex < bricks->objects.size(); brickIndex++)
@@ -67,25 +67,47 @@ void Render::run(Composite* bricks, Camera cam, Vertex light, int activeBrick)
 		COLORREF color = brick->color;
 		float transparency = brick->transparency;
 
-		this->activeBrick = (brick->ID == activeBrick);
+		this->activeBrick = (brick->ID == activeBrickIndex);
 		if(this->activeBrick)
 		{
 			this->actBrickIntencity();
 		}
 
-#pragma omp parallel for schedule(dynamic, 1)
+		vector<Face> tmpF = brick->faces;
+		vector<vector<Normal>> tmpN = brick->sVNormal;
+		for (int faceIndex = 0; faceIndex < tmpN.size(); faceIndex++)
+		{
+			for (int sfaceIndex = faceIndex; sfaceIndex < tmpN.size() - 1; sfaceIndex++)
+			{
+				//NEED FIX
+				double sum1 = brick->svertex[tmpF[sfaceIndex].A() - 1].Z + brick->svertex[tmpF[sfaceIndex].B() - 1].Z + brick->svertex[tmpF[sfaceIndex].C() - 1].Z;
+				double sum2 = brick->svertex[tmpF[sfaceIndex + 1].A() - 1].Z + brick->svertex[tmpF[sfaceIndex + 1].B() - 1].Z + brick->svertex[tmpF[sfaceIndex + 1].C() - 1].Z;
+				if (sum1 >= sum2)
+				{
+					std::swap(tmpF[sfaceIndex], tmpF[sfaceIndex + 1]);
+					std::swap(tmpN[sfaceIndex], tmpN[sfaceIndex + 1]);
+				}
+			}
+		}
+		bool useParallel = false;
+		if (brick->transparency > 0.99)
+		{
+			useParallel = true;
+		}
+
+#pragma omp parallel for schedule(dynamic, 1) if(useParallel)
 		for (int faceIndex = 0; faceIndex < brick->facesCount(); faceIndex++)
 		{
-			Face face = brick->faces[faceIndex];
+			Face face = tmpF[faceIndex];
 			if (face.visible)
 			{
 				Vertex A(brick->svertex[face.A() - 1]);
 				Vertex B(brick->svertex[face.B() - 1]);
 				Vertex C(brick->svertex[face.C() - 1]);
 
-				Normal nA = brick->sVNormal[faceIndex][0];
-				Normal nB = brick->sVNormal[faceIndex][1];
-				Normal nC = brick->sVNormal[faceIndex][2];
+				Normal nA = tmpN[faceIndex][0];
+				Normal nB = tmpN[faceIndex][1];
+				Normal nC = tmpN[faceIndex][2];
 
 				this->fillFaces(A, B, C, nA, nB, nC, color, light, cam, transparency);
 			}

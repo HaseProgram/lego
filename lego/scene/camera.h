@@ -42,10 +42,16 @@ public:
 	void rotateHorizontalSphere(double angle);
 
 	/*!
-	Rotate camera around target point in vertical surface
+	Rotate camera around target point in vertical ZY surface
 	\param[in] angle Rotation angle
 	*/
-	void rotateVerticalSphere(double angle);
+	void rotateVerticalSphereZ(double angle);
+
+	/*!
+	Rotate camera around target point in vertical XY surface
+	\param[in] angle Rotation angle
+	*/
+	void rotateVerticalSphereX(double angle);
 
 	/*!
 	Returns View matrix which displays object depends ot camera position

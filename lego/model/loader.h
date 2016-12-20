@@ -1,5 +1,5 @@
 /*!
-\file brick.h "model/loader.h"
+\file loader.h "model/loader.h"
 \brief  Load model from file
 \author Dmitry Zaitsev
 \copyright © BMSTU All rights violated.

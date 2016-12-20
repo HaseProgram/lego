@@ -7,6 +7,10 @@ Brick::Brick()
 {
 	this->color = RGB(255, 255, 255);
 	this->transparency = 1;
+	this->angleX = 0;
+	this->angleY = 0;
+	this->angleZ = 0;
+	this->type = -1;
 }
 
 Brick::Brick(const Brick& brick)
@@ -24,6 +28,10 @@ Brick::Brick(const Brick& brick)
 	this->scenter = brick.scenter;
 	this->color = brick.color;
 	this->transparency = brick.transparency;
+	this->angleX = brick.angleX;
+	this->angleY = brick.angleY;
+	this->angleZ = brick.angleZ;
+	this->type = brick.type;
 }
 
 Brick::Brick(Brick&& brick)
@@ -41,6 +49,10 @@ Brick::Brick(Brick&& brick)
 	this->scenter = brick.scenter;
 	this->color = brick.color;
 	this->transparency = brick.transparency;
+	this->angleX = brick.angleX;
+	this->angleY = brick.angleY;
+	this->angleZ = brick.angleZ;
+	this->type = brick.type;
 }
 
 Brick::~Brick()
@@ -70,6 +82,10 @@ Brick& Brick::operator=(Brick brick)
 	this->scenter = brick.scenter;
 	this->color = brick.color;
 	this->transparency = brick.transparency;
+	this->angleX = brick.angleX;
+	this->angleY = brick.angleY;
+	this->angleZ = brick.angleZ;
+	this->type = brick.type;
 	return *this;
 }
 

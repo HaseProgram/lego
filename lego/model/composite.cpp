@@ -4,7 +4,7 @@
 
 Composite::Composite()
 {
-	this->ID = 0;
+	this->ID = -1;
 }
 
 Composite::~Composite()
@@ -18,9 +18,9 @@ void Composite::add(Brick* obj)
 	{
 		throw CompositeAddNULLError();
 	}
+	this->ID++;
 	obj->ID = this->ID;
 	this->objects.push_back(obj);
-	this->ID++;
 }
 
 BaseObject* Composite::modificate(Modification* modification, Vertex* center)
@@ -32,12 +32,12 @@ BaseObject* Composite::modificate(Modification* modification, Vertex* center)
 	return this;
 }
 
-void Composite::remove(int ID)
+void Composite::remove(int delID)
 {
 	this->ID--;
 	for (int i = 0; i < this->objects.size(); i++)
 	{
-		if (this->objects[i]->ID == ID)
+		if (this->objects[i]->ID == delID)
 		{
 			delete this->objects[i];
 			for (int j = i + 1; j < this->objects.size(); j++)
@@ -68,5 +68,5 @@ void Composite::clear()
 		delete this->objects[i];
 		this->objects.erase(this->objects.begin() + i);
 	}
-	this->ID = 0;
+	this->ID = -1;
 }

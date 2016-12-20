@@ -50,4 +50,7 @@ public:
 		In brick - get ID of this brick.
 	*/
 	int ID;
+
+	int type;	/*!< loaded brick type (ex. 1x1, 2x1, etc); -1 for default objects */
+	double angleX, angleY, angleZ;	/*!< Angles for scene mem */
 };

@@ -44,9 +44,9 @@ Vertex Loader::readVertex()
 		throw LoaderBadFile();
 	}
 
-	tmpX *= 0.5;
-	tmpY *= 0.5;
-	tmpZ *= 0.5;
+	tmpX *= 5;
+	tmpY *= 5;
+	tmpZ *= 5;
 
 	Vertex v(tmpX, tmpY, tmpZ);
 
@@ -125,7 +125,7 @@ Brick* Loader::load(Composite* obj)
 			}
 		}
 
-		
+		// If our model has only normal to faces, not to vertices
 		//for (int i = 0; i < brick->facesCount(); i++)
 		//{
 		//	Face c1Face = brick->faces[i];

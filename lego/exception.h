@@ -42,3 +42,21 @@ public:
 		return "Can't add brick on this coordinates:\n another brick blocks place!";
 	}
 };
+
+class LoaderOpenFileError : public BaseException
+{
+public:
+	virtual const char* what() const
+	{
+		return "Can not open file! Please check if file exists!";
+	}
+};
+
+class LoaderBadFile : public BaseException
+{
+public:
+	virtual const char* what() const
+	{
+		return "Wrong file structure!";
+	}
+};

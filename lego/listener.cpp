@@ -19,6 +19,10 @@ double shift = 5;
 int bcount = 0;
 bool redraw = true;
 
+char szFileName[MAX_PATH * 2] = "";
+OPENFILENAME ofn;
+char buffer[500];
+
 //
 //  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -122,14 +126,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			UI->button(BTN_DELETE)->create(10, 670, 33, 223, TEXT("Delete Brick!"));
 			UI->button(BTN_DELETE)->setImage(BTN_DELETEBRICK);
 		
-			ActionLoadbrick* LoadFirst = new ActionLoadbrick("objs/2x1new.obj");
-			if (!LoadFirst)
+			ActionLoadbrick* Load1x1 = new ActionLoadbrick("objs/1x1.obj");
+			ActionLoadbrick* Load2x1 = new ActionLoadbrick("objs/2x1.obj");
+			ActionLoadbrick* Load2x2 = new ActionLoadbrick("objs/2x2.obj");
+			ActionLoadbrick* LoadCorner = new ActionLoadbrick("objs/corner.obj");
+			ActionLoadbrick* Load4x1 = new ActionLoadbrick("objs/4x1.obj");
+			ActionLoadbrick* LoadBase = new ActionLoadbrick("objs/base.obj");
+			if (!Load1x1 || !Load2x1 || !Load2x2 || !LoadCorner || !LoadBase || !Load4x1)
 			{
 				throw AllocationMemoryError();
 			}
 
-			application->call(*LoadFirst, 0);
+			application->call(*Load1x1, 0);
+			application->call(*Load2x1, 0);
+			application->call(*Load2x2, 0);
+			application->call(*LoadCorner, 0);
+			application->call(*Load4x1, 0);
+			application->call(*LoadBase, 0);
+			
+			UI->combobox(CB_CHOOSEBRICK)->addItem(TEXT("1x1"));
 			UI->combobox(CB_CHOOSEBRICK)->addItem(TEXT("2x1"));
+			UI->combobox(CB_CHOOSEBRICK)->addItem(TEXT("2x2"));
+			UI->combobox(CB_CHOOSEBRICK)->addItem(TEXT("Corner"));
+			UI->combobox(CB_CHOOSEBRICK)->addItem(TEXT("4x1"));
+			UI->combobox(CB_CHOOSEBRICK)->addItem(TEXT("Base 5x5"));
 
 		}
 		break;
@@ -180,6 +200,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			
 			switch (wmId)
 			{
+			case VK_F1:
+
+				ZeroMemory(&ofn, sizeof(ofn));
+
+				ofn.lStructSize = sizeof(ofn);
+				ofn.hwndOwner = NULL;
+				ofn.lpstrFilter = (LPCWSTR)L"Bitmap (*.bmp)";
+				ofn.lpstrFile = (LPWSTR)szFileName;
+				ofn.nMaxFile = MAX_PATH;
+				ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+				ofn.lpstrDefExt = (LPCWSTR)L"bmp";
+
+				GetSaveFileName(&ofn);
+
+				if (wcslen(ofn.lpstrFile))
+				{
+					wcstombs(buffer, ofn.lpstrFile, 500);
+					ActionScreenshot* scsh = new ActionScreenshot(buffer);
+					if (!scsh)
+					{
+						throw AllocationMemoryError();
+					}
+					application->call(*scsh, -1);
+				}
+				break;
 			case BTN_CHCOLOR:
 			{
 				brickColor = colorDialog();
@@ -512,7 +557,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 			case IDM_SAVESCENE: // Save
 			{
-				ActionSaveScene* svsc = new ActionSaveScene("F://University//Git//lego//lego//save.txt");
+				ActionSaveScene* svsc = new ActionSaveScene("F://University//Git//lego//lego//save.scene");
 				if (!svsc)
 				{
 					throw AllocationMemoryError();
@@ -523,7 +568,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 			case IDM_LOADSCENE: // Load
 			{
-				ActionLoadScene* loadsc = new ActionLoadScene("F://University//Git//lego//lego//save.txt");
+				ActionLoadScene* loadsc = new ActionLoadScene("F://University//Git//lego//lego//save.scene");
 				if (!loadsc)
 				{
 					throw AllocationMemoryError();
@@ -569,6 +614,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					redraw = false;
 				}
 			}
+		}
+		break;
+		case WM_MOUSEWHEEL:
+		{
+			if (GET_WHEEL_DELTA_WPARAM(wParam) > 0)
+			{
+				ActionScale* scale = new ActionScale(0.2);
+				if (!scale)
+				{
+					throw AllocationMemoryError();
+				}
+				application->call(*scale, -1);
+			}
+			else
+			{
+				ActionScale* scale = new ActionScale(-0.2);
+				if (!scale)
+				{
+					throw AllocationMemoryError();
+				}
+				application->call(*scale, -1);
+			}
+			application->call(*actionDraw, -1);
 		}
 		break;
 		case WM_PAINT:

@@ -79,6 +79,8 @@ Scene::Scene(HWND hWnd, int x, int y, int width, int height)
 	this->light.Y = -500;
 	this->light.Z = 0;
 
+	this->scalingK = 1;
+
 	this->initFloor();
 }
 
@@ -263,13 +265,15 @@ void Scene::toCam()
 	GVector d = this->cam->target;
 	d = d - this->cam->position;
 
+	GMatrix scale = matrixScaling(this->scalingK);
 	GMatrix proj = matrixProjection(d.length());
-	GMatrix scenecoord = matrixMove(xCenter, yCenter, 0);
+
+	GMatrix scenecoord = matrixMove(xCenter * this->scalingK - this->width * (this->scalingK - 1) / 2, yCenter*this->scalingK - this->height * (this->scalingK - 1) / 2, 0);
 	GMatrix nscenecoord = scenecoord;
 	nscenecoord.transposition();
 	nscenecoord.inverse();
 
-	GMatrix result = view * proj * scenecoord;
+	GMatrix result = view * proj * scale * scenecoord;
 	GMatrix nresult = result;
 	nresult.transposition();
 	nresult.inverse();
@@ -349,4 +353,39 @@ bool Scene::checkCollision(int ID)
 		}
 	}
 	return collision;
+}
+
+void Scene::screenshot(char* filename)
+{
+	int width = (this->width);
+	int height = (this->height);
+
+	size_t padding = 0;
+
+	if ((width * 3) % 4) padding = 4 - (width * 3) % 4;
+
+	BITMAPFILEHEADER bmfileheader;
+
+	bmfileheader.bfType = (DWORD)0x4D42;
+
+	bmfileheader.bfSize = (DWORD)(sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) +
+		width * height * padding);
+	bmfileheader.bfReserved1 = 0;
+	bmfileheader.bfReserved2 = 0;
+
+	bmfileheader.bfOffBits = (DWORD)(sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER));
+
+	sBmInfo.bmiHeader.biBitCount = 24;
+	sBmInfo.bmiHeader.biSize = 0x28;
+	FILE *fl;
+	fl = fopen(filename, "wb");
+	sBmInfo.bmiHeader.biSizeImage = width * height;
+	fwrite((void*)&bmfileheader, sizeof(BITMAPFILEHEADER), 1, fl);
+	fwrite((void*)&sBmInfo.bmiHeader, sizeof(BITMAPINFOHEADER), 1, fl);
+
+	for (int i = 0; i < height; i++)
+		for (int j = 0; j < width; j++)
+			fwrite((void*)(pixels + i * width + j), padding, 1, fl);
+
+	fclose(fl);
 }

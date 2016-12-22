@@ -67,11 +67,15 @@ public:
 	void toCam();
 
 	bool checkCollision(int ID);
+
+	void screenshot(char* filename);
 	
 	Composite* bricks;	/*!< Scene bricks array */
 	Camera* cam;		/*!< Camera object */
 	Vertex light;		/*!< Light object */
 	Vertex slight;		/*!< Light object in scene coordinates */
+
+	double scalingK;
 
 private:
 	/*!

@@ -146,3 +146,30 @@ GMatrix matrixProjection(double d)
 
 	return transform;
 }
+
+GMatrix matrixScaling(double k)
+{
+	GMatrix transform;
+
+	transform[0][0] = k;
+	transform[0][1] = 0;
+	transform[0][2] = 0;
+	transform[0][3] = 0;
+
+	transform[1][0] = 0;
+	transform[1][1] = k;
+	transform[1][2] = 0;
+	transform[1][3] = 0;
+
+	transform[2][0] = 0;
+	transform[2][1] = 0;
+	transform[2][2] = k;
+	transform[2][3] = 0;
+
+	transform[3][0] = 0;
+	transform[3][1] = 0;
+	transform[3][2] = 0;
+	transform[3][3] = 1;
+
+	return transform;
+}

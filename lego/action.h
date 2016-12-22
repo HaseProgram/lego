@@ -43,6 +43,7 @@ public:
 		this->Z = Z;
 		this->color = color;
 		this->trancparency = trancparency;
+		if (X == 0 && Y == 0) this->X = X + 1; // Fix bug with Collision
 	}
 
 	~ActionAddbrick()
@@ -52,6 +53,9 @@ public:
 	virtual void Execute(Scene* scene, Composite* loadedBricks, int ID) override
 	{
 		Brick brick = *(loadedBricks->objects[ID]);
+		RotationY* modification = new RotationY(M_PI);
+		brick.modificate(modification, &brick.center);
+		brick.applyModification();
 		if (!scene->AddBrick(brick, ID, this->X, this->Y, this->Z, this->color, this->trancparency))
 		{
 			throw AddBrickCollisionError();
@@ -478,6 +482,31 @@ private:
 	double angle;
 };
 
+class ActionScale : public Action
+{
+public:
+	ActionScale(double k)
+	{
+		this->k = k;
+	}
+
+	~ActionScale()
+	{
+	}
+
+	virtual void Execute(Scene* scene, Composite* loadedBricks, int ID) override
+	{
+		scene->scalingK += this->k;
+		if (scene->scalingK < 0.3 || scene->scalingK > 6)
+		{
+			scene->scalingK -= this->k;
+		}
+	}
+
+private:
+	double k;
+};
+
 // It's better to make new class but I have no time to make it look nice
 
 class ActionLoadScene : public Action
@@ -589,4 +618,25 @@ public:
 private:
 	char* filename;
 	FILE* file;
+};
+
+class ActionScreenshot : public Action
+{
+public:
+	ActionScreenshot(char* filename)
+	{
+		this->filename = filename;
+	}
+
+	~ActionScreenshot()
+	{
+	}
+
+	virtual void Execute(Scene* scene, Composite* loadedBricks, int ID) override
+	{
+		scene->screenshot(this->filename);
+	}
+
+private:
+	char* filename;
 };

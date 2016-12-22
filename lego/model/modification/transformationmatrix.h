@@ -41,7 +41,13 @@ Move object
 GMatrix matrixMove(double X, double Y, double Z);
 
 /*!
-Move object
+Proj object
 \param[in] d Length of camera direction vector
 */
 GMatrix matrixProjection(double d);
+
+/*!
+Scale object
+\param[in] k Scaling koefficient
+*/
+GMatrix matrixScaling(double k);
